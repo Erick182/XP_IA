@@ -1,26 +1,56 @@
-import torch
-from cvae import CVAE, one_hot
-import matplotlib.pyplot as plt
-import os
+name: Train CVAE
 
-model_dir = "./model"
-output_dir = os.path.join(model_dir, "samples")
-os.makedirs(output_dir, exist_ok=True)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-latent_dim = 120
-num_classes = 10
-input_channels = 1
+jobs:
+  train:
+    runs-on: ubuntu-latest
 
-model = CVAE(input_channels, num_classes, latent_dim)
-model.load_state_dict(torch.load(os.path.join(model_dir, "model.pth")))
-model.eval()
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-for label_idx in range(num_classes):
-    z = torch.randn(1, latent_dim)
-    label = torch.tensor([label_idx])
-    label_one_hot = one_hot(label, num_classes, device='cpu').view(1, -1).float()
-    out = model.decoder(z, label_one_hot).detach().cpu().squeeze()
-    plt.imshow(out, cmap='gray')
-    plt.axis('off')
-    plt.savefig(os.path.join(output_dir, f"sample_{label_idx}.png"))
-    plt.close()
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install matplotlib
+
+    - name: Create folders
+      run: |
+        mkdir -p ./data ./model ./model/samples
+
+    - name: Run training
+      run: |
+        python cvae.py \
+          --data-dir ./data \
+          --model-dir ./model \
+          --epochs 2 \
+          --batch-size 32 \
+          --latent_dim 120 \
+          --num-classes 10 \
+          --num-gpus 0
+
+    - name: Upload trained model
+      uses: actions/upload-artifact@v3
+      with:
+        name: cvae-model
+        path: ./model/
+
+    - name: Generate sample images
+      run: |
+        python generate_samples.py
+
+    - name: Upload sample images
+      uses: actions/upload-artifact@v3
+      with:
+        name: cvae-samples
+        path: ./model/samples/
