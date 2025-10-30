@@ -1,0 +1,40 @@
+
+name: Train CVAE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create folders
+      run: |
+        mkdir -p ./data ./model
+
+    - name: Run training
+      run: |
+        python cvae.py \
+          --data-dir ./data \
+          --model-dir ./model \
+          --epochs 2 \
+          --batch-size 32 \
+          --latent_dim 120 \
+          --num-classes 10 \
+          --num-gpus 0
