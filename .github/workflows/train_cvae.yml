@@ -29,7 +29,7 @@ jobs:
 
       - name: Run training
         run: |
-          python cvae.py \
+          python training_script_fixed.py \
             --data-dir ./data \
             --model-dir ./model \
             --epochs 2 \
