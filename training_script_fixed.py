@@ -143,9 +143,10 @@ def train(args):
 
 def save_model(model, model_dir):
     logger.info("Saving the model.")
-    path = os.path.join(model_dir, "model.pth")
-    torch.save(model.cpu().state_dict(), path)
-    torch.save(model.decoder.state_dict(), os.path.join(model_dir, 'decoder.pth'))
+    os.makedirs(model_dir, exist_ok=True)  # garante que a pasta exista
+
+    torch.save(model.cpu().state_dict(), os.path.join(model_dir, "model.pth"))
+    torch.save(model.decoder.state_dict(), os.path.join(model_dir, "decoder.pth"))
 
 
 def _get_train_data_loader(batch_size, training_dir, **kwargs):
