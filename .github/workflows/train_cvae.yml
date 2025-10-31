@@ -38,8 +38,17 @@ jobs:
             --num-classes 10 \
             --num-gpus 0
 
+      - name: Test trained model
+        run: python test_model.py
+
       - name: Upload model artifact
         uses: actions/upload-artifact@v4
         with:
           name: modelo_cvae
           path: model/
+
+      - name: Upload generated sample image
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-image
+          path: sample_generated.png
